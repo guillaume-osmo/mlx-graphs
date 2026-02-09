@@ -1,3 +1,8 @@
+from .attentivefp_conv import (  # noqa
+    AttentiveFP,
+    AttentiveFPFlexibleRegressor,
+    AttentiveFPRegressor,
+)
 from .gat_conv import GATConv  # noqa
 from .gatv2_conv import GATv2Conv  # noqa
 from .gcn_conv import GCNConv  # noqa
