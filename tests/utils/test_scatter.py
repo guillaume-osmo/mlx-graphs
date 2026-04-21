@@ -65,6 +65,26 @@ from mlx_graphs.utils import degree, invert_sqrt_degree, scatter
             "mean",
             mx.array([[1, 2.5], [1, 4], [1, 5]]),
         ),
+        (
+            mx.array(
+                [
+                    [[1.0, 2.0], [3.0, 4.0]],
+                    [[2.0, 1.0], [4.0, 3.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                    [[9.0, 10.0], [11.0, 12.0]],
+                ]
+            ),
+            mx.array([0, 0, 1, 2]),
+            3,
+            "max",
+            mx.array(
+                [
+                    [[2.0, 2.0], [4.0, 4.0]],
+                    [[5.0, 6.0], [7.0, 8.0]],
+                    [[9.0, 10.0], [11.0, 12.0]],
+                ]
+            ),
+        ),
     ],
 )
 def test_scatter(src, index, num_nodes, aggr, expected):

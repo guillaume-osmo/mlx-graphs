@@ -85,6 +85,36 @@ class TestAttentiveFP(unittest.TestCase):
         self.assertTrue(mx.all(mx.isfinite(out_train)).item(), "train output finite")
         self.assertTrue(mx.all(mx.isfinite(out_eval)).item(), "eval output finite")
 
+    def test_attentivefp_regressor_with_graph_features_and_residual(self):
+        n_atom, n_bond = 16, 4
+        fp_dim, radius, T = 8, 2, 2
+        num_nodes, num_edges, batch_size = 12, 30, 3
+        model = AttentiveFPRegressor(
+            n_atom,
+            n_bond,
+            fp_dim,
+            radius,
+            T,
+            0.1,
+            use_rms_norm=True,
+            rdkit_dim=5,
+            residual_dt="add",
+        )
+        edge_index, node_features, edge_features, batch_indices = _make_batch(
+            n_atom, n_bond, num_nodes, num_edges, batch_size
+        )
+        graph_features = mx.random.normal((batch_size, 5)).astype(mx.float32)
+        out = model(
+            edge_index,
+            node_features,
+            edge_features,
+            batch_indices,
+            graph_features=graph_features,
+            training=True,
+        )
+        self.assertEqual(out.shape, (batch_size, 1))
+        self.assertTrue(mx.all(mx.isfinite(out)).item(), "rdkit/residual output finite")
+
     def test_attentivefp_flexible_regressor_gru(self):
         n_atom, n_bond = 32, 8
         fp_dim, radius, T = 16, 2, 2

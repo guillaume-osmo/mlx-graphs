@@ -91,6 +91,10 @@ class SAGEConv(MessagePassing):
         return edge_weights.reshape(-1, 1) * src_features
 ```
 
+## API Status
+
+The public top-level convolution API is intentionally conservative. For the current stable exports, the experimental direct-module APIs, and the literature map behind each model family, see [docs/API_STATUS.md](docs/API_STATUS.md).
+
 ## Contributing
 ### Why contributing?
 

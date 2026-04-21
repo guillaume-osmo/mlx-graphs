@@ -1,6 +1,6 @@
 import mlx.core as mx
 
-from mlx_graphs.nn.conv.gatv2_conv import GATv2Conv
+from mlx_graphs.nn.conv import GATv2Conv, GATv2Regressor
 
 mx.random.seed(42)
 
@@ -46,3 +46,39 @@ def test_gat_conv():
         32,
     ), "GATv2Conv with multiple heads without concat failed"
     assert y_hat6.shape == (100, 32), "GATv2Conv with edge features failed"
+
+
+def test_gatv2_regressor():
+    regressor = GATv2Regressor(
+        node_dim=8,
+        edge_dim=4,
+        hidden_dim=24,
+        heads=3,
+        depth=2,
+        dropout=0.1,
+        rdkit_dim=5,
+        mol_attention_steps=2,
+        residual_dt=0.5,
+    )
+    node_features = mx.random.uniform(0, 1, [12, 8])
+    edge_features = mx.random.uniform(0, 1, [20, 4])
+    edge_index = mx.array(
+        [
+            [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 0, 2, 6, 6, 8, 11, 1, 4, 5, 9],
+            [1, 2, 3, 4, 5, 0, 8, 9, 10, 11, 6, 6, 0, 2, 7, 10, 4, 1, 9, 5],
+        ]
+    )
+    batch_indices = mx.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+    graph_features = mx.random.uniform(0, 1, [3, 5])
+
+    y_hat = regressor(
+        edge_index,
+        node_features,
+        edge_features,
+        batch_indices,
+        graph_features=graph_features,
+        training=True,
+    )
+
+    assert y_hat.shape == (3, 1), "GATv2Regressor output shape failed"
+    assert mx.all(mx.isfinite(y_hat)).item(), "GATv2Regressor output should be finite"

@@ -90,7 +90,9 @@ def scatter_add(src: mx.array, index: mx.array, values: mx.array):
 
 def scatter_max(src: mx.array, index: mx.array, values: mx.array):
     """Scatters `values` at `index` within `src`. If duplicate indices are present,
-    the maximum value is kept at these indices.
+    the maximum value is kept at these indices. Returns an array of shape `src.shape`
+    (reduced by index), not the gathered slice. Uses vectorized (out_size, n_edges)
+    mask to avoid loops and boolean indexing.
 
     Args:
         src: Source array where the values will be scattered (often an empty array)
@@ -98,10 +100,36 @@ def scatter_max(src: mx.array, index: mx.array, values: mx.array):
         values: Input array containing values to be scattered.
 
     Returns:
-        The resulting array after applying scatter and max operations on the values at
-        duplicate indices
+        Array of shape `src.shape` with the maximum value at each index position.
     """
-    return src.at[index].maximum(values)
+    if index.shape[0] != values.shape[0]:
+        raise ValueError(
+            "scatter_max: index and values must have same length along axis 0, "
+            f"got index.shape[0]={index.shape[0]} values.shape[0]={values.shape[0]}"
+        )
+    # Support arbitrary trailing dims by reducing each flattened feature column.
+    if values.ndim > 1:
+        flat_src = mx.reshape(src, (src.shape[0], -1))
+        flat_values = mx.reshape(values, (values.shape[0], -1))
+        flat_out = mx.stack(
+            [
+                scatter_max(flat_src[:, j], index, flat_values[:, j])
+                for j in range(flat_values.shape[1])
+            ],
+            axis=1,
+        )
+        return mx.reshape(flat_out, src.shape)
+    out_size = src.shape[0]
+    n = values.shape[0]
+    # (out_size, 1) == (1, n) -> (out_size, n): True where index[j] == i
+    idx_dtype = index.dtype
+    eq = mx.reshape(mx.arange(out_size, dtype=idx_dtype), (-1, 1)) == mx.reshape(index, (1, -1))
+    # Where eq: values (broadcast (1, n)); else -inf
+    minus_inf = mx.full((out_size, n), -float("inf"), dtype=values.dtype)
+    vals_broadcast = mx.broadcast_to(values.reshape(1, -1), (out_size, n))
+    masked = mx.where(eq, vals_broadcast, minus_inf)
+    out = mx.max(masked, axis=1)
+    return out
 
 
 def scatter_min(src: mx.array, index: mx.array, values: mx.array):
@@ -174,13 +202,31 @@ def scatter_softmax(
         scatter_softmax(src, index, num_nodes)
         >>>  mx.array([0.5, 0.5, 1, 1])
     """
+    # PyG-style: normalize per (index, *trailing_dims). Support arbitrary trailing dims.
+    if values.ndim > 1:
+        flat_values = mx.reshape(values, (values.shape[0], -1))
+        flat_out = mx.stack(
+            [
+                scatter_softmax(flat_values[:, j], index, out_size, axis=axis)
+                for j in range(flat_values.shape[1])
+            ],
+            axis=1,
+        )
+        return mx.reshape(flat_out, values.shape)
     # index = broadcast(index, values, axis) # NOTE: may be used in future.
     scatt_max = scatter(values, index, out_size, aggr="max", axis=axis)
     scatt_max = scatt_max[index]
     out = (values - scatt_max).exp()
 
-    scatt_sum = scatter(out, index, out_size, aggr="add", axis=axis)
-    scatt_sum = scatt_sum[index]
+    # Per-group sum: vectorized (out_size, n_edges) mask, no loop
+    n_edges = index.shape[0]
+    idx_dtype = index.dtype
+    eq = mx.reshape(mx.arange(out_size, dtype=idx_dtype), (-1, 1)) == mx.reshape(index, (1, -1))
+    zeros_broadcast = mx.broadcast_to(mx.zeros((1, n_edges), dtype=out.dtype), (out_size, n_edges))
+    out_broadcast = mx.broadcast_to(out.reshape(1, -1), (out_size, n_edges))
+    masked = mx.where(eq, out_broadcast, zeros_broadcast)
+    scatt_sum = mx.sum(masked, axis=1)
+    scatt_sum = scatt_sum[index]  # gather back to (E,) for division with out
 
     eps = 1e-16
     return out / (scatt_sum + eps)

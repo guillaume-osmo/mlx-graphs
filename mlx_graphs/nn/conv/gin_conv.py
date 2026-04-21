@@ -1,10 +1,12 @@
-from typing import Optional
+from typing import Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
 
 from mlx_graphs.nn.linear import Linear
 from mlx_graphs.nn.message_passing import MessagePassing
+from mlx_graphs.nn.mol_attention_readout import MolAttentionReadout
+from mlx_graphs.utils import scatter
 
 
 class GINConv(MessagePassing):
@@ -148,3 +150,92 @@ class GINConv(MessagePassing):
 
         # GINConv
         return super(self.__class__, self).message(src_features, dst_features, **kwargs)
+
+
+# --- GINE regressor (GIN with edge features): stack of GINConv + pool + MLP ---
+
+
+class GINERegressor(nn.Module):
+    """GINE regressor: GIN with edge features. Stack of GINConv layers + global pool + MLP (64->32->1). Optional rdkit.
+    mol_attention_steps: if > 0, use AttFP-style mol GRU/attention readout instead of sum pool.
+    residual_dt: None = replace; "add" = relu(norm(h+y)); 0.5 = relu(h+0.5*(y-h))."""
+
+    def __init__(
+        self,
+        node_dim: int,
+        edge_dim: int,
+        hidden_dim: int = 128,
+        depth: int = 3,
+        dropout: float = 0.1,
+        mlp_units: tuple[int, ...] = (64, 32),
+        rdkit_dim: int = 0,
+        mol_attention_steps: int = 0,
+        mol_integrator: str = "euler",
+        residual_dt: Optional[Union[float, str]] = None,
+    ):
+        super().__init__()
+        self.mol_attention_steps = mol_attention_steps
+        self.residual_dt = residual_dt
+        self.node_proj = Linear(node_dim, hidden_dim)
+        self.depth = depth
+        self.norm_after_add = nn.LayerNorm(hidden_dim) if residual_dt == "add" else None
+        for i in range(depth):
+            gine_mlp = nn.Sequential(
+                Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                Linear(hidden_dim, hidden_dim),
+            )
+            setattr(
+                self,
+                f"gine_{i}",
+                GINConv(
+                    gine_mlp,
+                    edge_features_dim=edge_dim,
+                    node_features_dim=hidden_dim,
+                ),
+            )
+        if mol_attention_steps > 0:
+            self.mol_readout = MolAttentionReadout(
+                hidden_dim, mol_attention_steps, dropout, integrator=mol_integrator
+            )
+        else:
+            self.mol_readout = None
+        self.dropout = nn.Dropout(dropout)
+        mlp_in = hidden_dim + (rdkit_dim if rdkit_dim > 0 else 0)
+        units = [mlp_in] + list(mlp_units) + [1]
+        self.mlp_layers = [Linear(units[i], units[i + 1], bias=True) for i in range(len(units) - 1)]
+        self.rdkit_dim = rdkit_dim
+
+    def __call__(
+        self,
+        edge_index: mx.array,
+        node_features: mx.array,
+        edge_features: mx.array,
+        batch_indices: mx.array,
+        graph_features: Optional[mx.array] = None,
+        training: bool = False,
+    ) -> mx.array:
+        h = self.node_proj(node_features)
+        dt = self.residual_dt
+        for i in range(self.depth):
+            y = getattr(self, f"gine_{i}")(edge_index, h, edge_features)
+            if dt == "add":
+                h = nn.relu(self.norm_after_add(h + y))
+            elif dt is not None and isinstance(dt, (int, float)):
+                h = nn.relu(h + float(dt) * (y - h))
+            else:
+                h = nn.relu(y)
+        if self.mol_readout is not None:
+            graph_repr = self.mol_readout(h, batch_indices, training=training)
+        else:
+            num_graphs = int(mx.max(batch_indices).item()) + 1
+            graph_repr = scatter(h, batch_indices, out_size=num_graphs, aggr="add")
+        if self.rdkit_dim > 0 and graph_features is not None:
+            graph_repr = mx.concatenate([graph_repr, graph_features], axis=-1)
+        if training:
+            graph_repr = self.dropout(graph_repr)
+        for i, layer in enumerate(self.mlp_layers):
+            graph_repr = layer(graph_repr)
+            if i < len(self.mlp_layers) - 1:
+                graph_repr = nn.leaky_relu(graph_repr)
+        return graph_repr
