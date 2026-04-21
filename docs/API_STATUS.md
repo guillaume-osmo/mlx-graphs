@@ -47,7 +47,7 @@ These are available from `mlx_graphs.chem` and now have dedicated smoke/unit cov
 
 ## Validation Snapshot
 
-- Full local test suite: `154 passed`, `13 skipped`
+- Full local test suite: `156 passed`, `13 skipped`
 - Added broad model-family smoke coverage under `tests/nn/conv/test_experimental_models.py`
 - Added chemistry and shortest-path coverage under `tests/chem/` and `tests/utils/test_bmssp.py`
 
