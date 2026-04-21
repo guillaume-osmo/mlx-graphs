@@ -1,4 +1,6 @@
-"""All-in-one fold-masked ensembles for blind cross-validation by construction.
+"""ChemeleonSMD-AllinOne fold-masked ensembles for blind cross-validation.
+
+Paper-facing family name: SCORE-GNNs.
 
 This module combines three ideas:
 

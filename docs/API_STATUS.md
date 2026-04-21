@@ -29,7 +29,7 @@ These modules are kept in-tree, smoke-tested, and importable directly, but are n
 | `mlx_graphs.nn.conv.mogat_conv` | `MoGATRegressor`, `GraphODEMoGATRegressor` | smoke-tested | Multi-order Graph Attention Network |
 | `mlx_graphs.nn.conv.molpath_conv` | `MolPathRegressor` | smoke-tested, depends on `bmssp` utils | shortest-path-aware message passing |
 | `mlx_graphs.nn.conv.graph_ode_conv` | `GraphODE*Regressor` family | representative variants smoke-tested | Neural ODE + backbone-specific message operators |
-| `mlx_graphs.nn.all_in_one` | `AllInOneCVEnsembleRegressor`, masking helpers | direct unit tests | mixtures of experts + stacked generalization + deep ensembles |
+| `mlx_graphs.nn.all_in_one` | `AllInOneCVEnsembleRegressor`, masking helpers | direct unit tests; paper-facing name: `ChemeleonSMD-AllinOne` in the `SCORE-GNNs` family | mixtures of experts + stacked generalization + deep ensembles |
 | `mlx_graphs.nn.mol_attention_readout` | `MolAttentionReadout` | direct unit test + reused broadly | AttentiveFP-style graph readout |
 | `mlx_graphs.utils.bmssp` | `BMSSPConfig`, `bounded_sssp_nonneg`, `edge_list_to_adj` | direct unit tests | bounded shortest-path frontier scheduling |
 

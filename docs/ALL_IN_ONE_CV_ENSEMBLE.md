@@ -1,12 +1,14 @@
-# All-in-One Fold-Masked Ensemble
+# ChemeleonSMD-AllinOne
 
-This experimental module implements the "all in one" idea: train `K` independent
+Paper-facing family name: `SCORE-GNNs`.
+
+This experimental module implements the `ChemeleonSMD-AllinOne` idea: train `K` independent
 experts in parallel, assign each sample to one holdout fold, and never expose that
 sample's target to its matching expert.
 
 ## Why
 
-Classic `K`-fold CV trains `K` separate models. The all-in-one version keeps the same
+Classic `K`-fold CV trains `K` separate models. `ChemeleonSMD-AllinOne` keeps the same
 blindness rule inside a single training job:
 
 - expert `0` is blind to fold `0`
@@ -30,12 +32,17 @@ for test-time ensembling on new data. Use `holdout_prediction` for CV accounting
 
 Module path: `mlx_graphs.nn.all_in_one`
 
+Stable code name:
 - `AllInOneCVEnsembleRegressor`
 - `AllInOneCVOutput`
 - `fold_holdout_mask`
 - `blind_holdout_predictions`
 - `masked_expert_mse_loss`
 - `holdout_mse_loss`
+
+Paper-facing names:
+- `ChemeleonSMD-AllinOne`
+- `SCORE-GNNs`
 
 ## Example
 
