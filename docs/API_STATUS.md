@@ -29,6 +29,7 @@ These modules are kept in-tree, smoke-tested, and importable directly, but are n
 | `mlx_graphs.nn.conv.mogat_conv` | `MoGATRegressor`, `GraphODEMoGATRegressor` | smoke-tested | Multi-order Graph Attention Network |
 | `mlx_graphs.nn.conv.molpath_conv` | `MolPathRegressor` | smoke-tested, depends on `bmssp` utils | shortest-path-aware message passing |
 | `mlx_graphs.nn.conv.graph_ode_conv` | `GraphODE*Regressor` family | representative variants smoke-tested | Neural ODE + backbone-specific message operators |
+| `mlx_graphs.nn.all_in_one` | `AllInOneCVEnsembleRegressor`, masking helpers | direct unit tests | mixtures of experts + stacked generalization + deep ensembles |
 | `mlx_graphs.nn.mol_attention_readout` | `MolAttentionReadout` | direct unit test + reused broadly | AttentiveFP-style graph readout |
 | `mlx_graphs.utils.bmssp` | `BMSSPConfig`, `bounded_sssp_nonneg`, `edge_list_to_adj` | direct unit tests | bounded shortest-path frontier scheduling |
 
@@ -47,9 +48,10 @@ These are available from `mlx_graphs.chem` and now have dedicated smoke/unit cov
 
 ## Validation Snapshot
 
-- Full local test suite: `156 passed`, `13 skipped`
+- Full local test suite: `160 passed`, `13 skipped`
 - Added broad model-family smoke coverage under `tests/nn/conv/test_experimental_models.py`
 - Added chemistry and shortest-path coverage under `tests/chem/` and `tests/utils/test_bmssp.py`
+- Added fold-masked ensemble coverage under `tests/nn/test_all_in_one.py`
 
 ## Promotion Rules
 

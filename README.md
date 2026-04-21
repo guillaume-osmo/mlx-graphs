@@ -95,6 +95,8 @@ class SAGEConv(MessagePassing):
 
 The public top-level convolution API is intentionally conservative. For the current stable exports, the experimental direct-module APIs, and the literature map behind each model family, see [docs/API_STATUS.md](docs/API_STATUS.md).
 
+For the fold-masked "all in one" CV ensemble idea, including the blind holdout-vs-merged prediction semantics, see [docs/ALL_IN_ONE_CV_ENSEMBLE.md](docs/ALL_IN_ONE_CV_ENSEMBLE.md).
+
 ## Contributing
 ### Why contributing?
 
