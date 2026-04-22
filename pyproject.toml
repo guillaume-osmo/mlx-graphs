@@ -58,6 +58,9 @@ Documentation = "https://mlx-graphs.github.io/mlx-graphs/"
 Repository = "https://github.com/mlx-graphs/mlx-graphs"
 Issues = "https://github.com/mlx-graphs/mlx-graphs/issues"
 
+[tool.setuptools.packages.find]
+include = ["mlx_graphs*"]
+
 
 [tool.ruff]
 line-length = 88
