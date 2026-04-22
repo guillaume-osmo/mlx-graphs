@@ -95,6 +95,10 @@ class SAGEConv(MessagePassing):
 
 The public top-level convolution API is intentionally conservative. For the current stable exports, the experimental direct-module APIs, and the literature map behind each model family, see [docs/API_STATUS.md](docs/API_STATUS.md).
 
+For the paper-facing `SCORE-GNNs` naming, use [mlx_graphs/nn/conv/graph_score_conv.py](mlx_graphs/nn/conv/graph_score_conv.py), which provides `GraphSCORE*` aliases over the historical `graph_ode_conv.py` implementation.
+
+For the module-by-module review table against `origin/main`, including review progress, unit-test status, known errors, and done vs in-progress labels for each added graph-conv family, see [docs/GRAPH_SCORE_REVIEW_STATUS.md](docs/GRAPH_SCORE_REVIEW_STATUS.md).
+
 For the fold-masked `ChemeleonSMD-AllinOne` idea, part of the `SCORE-GNNs` paper naming, including the blind holdout-vs-merged prediction semantics, see [docs/ALL_IN_ONE_CV_ENSEMBLE.md](docs/ALL_IN_ONE_CV_ENSEMBLE.md).
 
 ## Contributing

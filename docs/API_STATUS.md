@@ -28,7 +28,7 @@ These modules are kept in-tree, smoke-tested, and importable directly, but are n
 | `mlx_graphs.nn.conv.groupgat_conv` | `GroupGATRegressor`, `GraphODEGroupGATRegressor` | smoke-tested | GC-GNN / GroupGAT |
 | `mlx_graphs.nn.conv.mogat_conv` | `MoGATRegressor`, `GraphODEMoGATRegressor` | smoke-tested | Multi-order Graph Attention Network |
 | `mlx_graphs.nn.conv.molpath_conv` | `MolPathRegressor` | smoke-tested, depends on `bmssp` utils | shortest-path-aware message passing |
-| `mlx_graphs.nn.conv.graph_ode_conv` | `GraphODE*Regressor` family | representative variants smoke-tested | Neural ODE + backbone-specific message operators |
+| `mlx_graphs.nn.conv.graph_score_conv` | `GraphSCORE*Regressor` family | paper-facing alias surface with direct alias tests; underlying implementation smoke-tested | Neural ODE / SCORE dynamics + backbone-specific message operators |
 | `mlx_graphs.nn.all_in_one` | `AllInOneCVEnsembleRegressor`, masking helpers | direct unit tests; paper-facing name: `ChemeleonSMD-AllinOne` in the `SCORE-GNNs` family | mixtures of experts + stacked generalization + deep ensembles |
 | `mlx_graphs.nn.mol_attention_readout` | `MolAttentionReadout` | direct unit test + reused broadly | AttentiveFP-style graph readout |
 | `mlx_graphs.utils.bmssp` | `BMSSPConfig`, `bounded_sssp_nonneg`, `edge_list_to_adj` | direct unit tests | bounded shortest-path frontier scheduling |
@@ -50,6 +50,7 @@ These are available from `mlx_graphs.chem` and now have dedicated smoke/unit cov
 
 - Full local test suite: `160 passed`, `13 skipped`
 - Added broad model-family smoke coverage under `tests/nn/conv/test_experimental_models.py`
+- Added direct paper-alias coverage under `tests/nn/conv/test_graph_score_conv.py`
 - Added chemistry and shortest-path coverage under `tests/chem/` and `tests/utils/test_bmssp.py`
 - Added fold-masked ensemble coverage under `tests/nn/test_all_in_one.py`
 
